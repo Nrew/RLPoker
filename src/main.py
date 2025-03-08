@@ -1,6 +1,5 @@
 from enviroment import Action, PokerEnv
 
-
 def interactive_test():
     """Interactive test function for manual testing."""
     env = PokerEnv(num_players=4)
@@ -48,3 +47,11 @@ def interactive_test():
             print(f"Invalid input: {e}")
     
     print("Interactive test completed.")
+
+if __name__ == "__main__":
+    interactive_test()
+    # Uncomment the following line to run the interactive test
+    interactive_test()
+    # Uncomment the following line to run the automated test
+    # automated_test()
+    print("Exiting...")

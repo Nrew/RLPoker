@@ -84,7 +84,7 @@ class PokerEnv:
             Initial observation of the enviroment.
         """
         # Reset deck.
-        self.deck = self._all_cards.copy()
+        self.deck = self._generate_deck()
         random.shuffle(self.deck)
 
         # Reset community cards.
