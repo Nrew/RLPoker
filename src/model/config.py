@@ -2,7 +2,7 @@
 import torch
 
 # --- PPO Hyperparameters ---
-STATE_DIM = 20                  # Dimension of the state vector (update if features change)
+STATE_DIM = 28                  # Dimension of the state vector [Original (21) + Win Rate (1) + Pot Odds (1) + SPR (1) + Bet Count (1) + Board Texture (3) = 28] (update if features change) 
 ACTION_DIM = 5                  # Discrete actions: Fold, Call, Raise Min, Raise Pot, All-in
 GAMMA = 0.99                    # Discount factor for rewards
 PPO_EPSILON = 0.2               # PPO clipping parameter (ratio constraint)
@@ -15,7 +15,7 @@ VALUE_LOSS_COEFF = 0.5          # Coefficient for the critic's value loss
 
 # --- Training Configuration ---
 BATCH_SIZE = 128                # Number of steps (transitions) per PPO update batch
-BUFFER_SIZE = BATCH_SIZE * 10   # Max steps to store in memory before forcing update
+BUFFER_SIZE = BATCH_SIZE * 15   # Max steps to store in memory before forcing update
 NUM_TRAINING_GAMES = 10000      # Total number of games to simulate for training
 INITIAL_STACK = 1000            # Starting stack size for players
 SMALL_BLIND = 5                 # Small blind amount
@@ -26,7 +26,9 @@ SAVE_INTERVAL = 200             # Save model every N games
 LOAD_MODEL = False              # Set to True to load a pre-trained model at the start
 
 # --- Environment/Agent Settings ---
+NUM_OPPONENTS = 6               # Number of opponents in the game (including the agent)
 OPPONENT_TYPE = "call"          # Opponent type ('call', 'fold', 'random', 'ppo' - requires another agent)
+PLAYER_NAME_PREFIX = "Agent_"   # Prefix for naming player instances
 
 # --- Device Configuration ---
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -34,4 +36,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {DEVICE}")
 
 # --- Network Architecture ---
-HIDDEN_UNITS = 128     # Number of units in hidden layers
+HIDDEN_UNITS = 128              # Number of units in hidden layers
+
+# --- Constants ---
+MAX_PLAYERS = NUM_OPPONENTS + 1 # Total players in the game (including the agent)

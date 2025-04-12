@@ -4,7 +4,7 @@ import torch
 from . import config
 
 class MemoryBuffer:
-    """Stores transitions for PPO update, optimized for batch processing."""
+    """Stores transitions for PPO update."""
     def __init__(self, batch_size=config.BATCH_SIZE, buffer_size=config.BUFFER_SIZE, device=config.DEVICE):
         self.states = []
         self.actions = []
@@ -118,7 +118,7 @@ class MemoryBuffer:
         last_gae_lam = 0.0
         n_steps = len(rewards)
 
-        # Need next state value estimate for delta calculation
+        # NOTE: Need next state value estimate for delta calculation
         # Append a 0 value for the terminal state if the last state wasn't terminal,
         # or use the value estimate of the last state if it *was* terminal (should be 0).
         # Simpler: Use V(s_t+1) where available, 0 if done[t] == 1.

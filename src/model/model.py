@@ -119,7 +119,6 @@ class PPO:
                 torch.nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=0.5) # Optional gradient clipping
                 self.critic_optimizer.step()
 
-
                 # --- Logging (optional per mini-batch) ---
                 actor_losses.append(actor_loss.item())
                 critic_losses.append(critic_loss.item())
