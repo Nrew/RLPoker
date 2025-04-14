@@ -42,7 +42,7 @@ def process_poker_state_for_nn(hole_card, round_state, uuid):
             break
 
     if player_idx is not None:
-        # Calculate relative position (0 = dealer, 1 = small blind, etc.)
+        # Calculate relative position (0 = dealer, 1 = small blind)
         state['position'] = (player_idx - dealer_pos) % player_count
         state['is_dealer'] = player_idx == dealer_pos
         state['is_small_blind'] = player_idx == round_state['small_blind_pos']
