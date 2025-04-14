@@ -3,11 +3,14 @@ from pypokerengine.players import BasePokerPlayer
 class AllInBot(BasePokerPlayer):
 
     def declare_action(self, valid_actions, hole_card, round_state):
-    # valid_actions format => [raise_action_info, call_action_info, fold_action_info]
+        # valid_actions format => [raise_action_info, call_action_info, fold_action_info]
+        print(f'Round state: \n{round_state}')
+        for action in valid_actions:
+            if action['action'] == 'raise':
+                return 'raise', action['amount']['max']
+        # Otherwise, just call.
         call_action_info = valid_actions[1]
-        print(f"Actions: {valid_actions}")
-        action, amount = call_action_info["action"], call_action_info["amount"]
-        return action, amount   # action returned here is sent to the poker engine
+        return call_action_info["action"], call_action_info["amount"]
 
     def receive_game_start_message(self, game_info):
         pass

@@ -1,11 +1,14 @@
 from pypokerengine.players import BasePokerPlayer
+from src.bots.process_state_for_nn import process_poker_state_for_nn
 
 class BasicBot(BasePokerPlayer):  # Do not forget to make parent class as "BasePokerPlayer"
 
     #  we define the logic to make an action through this method. (so this method would be the core of your AI)
     def declare_action(self, valid_actions, hole_card, round_state):
         # valid_actions format => [raise_action_info, call_action_info, fold_action_info]
-        call_action_info = valid_actions[1]
+        call_action_info = valid_actions[0]
+        processed_state = process_poker_state_for_nn(hole_card, round_state, self.uuid)
+        print(processed_state)
         action, amount = call_action_info["action"], call_action_info["amount"]
         return action, amount   # action returned here is sent to the poker engine
 

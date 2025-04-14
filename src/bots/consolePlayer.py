@@ -1,4 +1,6 @@
 import pypokerengine.utils.visualize_utils as U
+from pypokerengine.players import BasePokerPlayer
+
 
 class ConsolePlayer(BasePokerPlayer):
 
@@ -28,13 +30,57 @@ class ConsolePlayer(BasePokerPlayer):
         self._wait_until_input()
 
     def _wait_until_input(self):
-        raw_input("Enter some key to continue ...")
+        input("Enter some key to continue ...")
 
     # FIXME: This code would be crash if receives invalid input.
     #        So you should add error handling properly.
     def _receive_action_from_console(self, valid_actions):
-        action = raw_input("Enter action to declare >> ")
-        if action == 'fold': amount = 0
-        if action == 'call':  amount = valid_actions[1]['action']
-        if action == 'raise':  amount = int(raw_input("Enter raise amount >> "))
+        # Convert valid_actions to a more accessible format
+        actions_dict = {action['action']: action for action in valid_actions}
+
+        # Display available actions to the player
+        available_actions = list(actions_dict.keys())
+        print(f"Available actions: {available_actions}")
+
+        while True:
+            try:
+                # Get action input
+                action = input("Enter action to declare (fold/call/raise) >> ")
+
+                # Validate the action
+                if action not in available_actions:
+                    print(f"Invalid action. Please choose from {available_actions}")
+                    continue
+
+                # Handle each action type
+                if action == 'fold':
+                    amount = 0
+                    break
+
+                elif action == 'call':
+                    amount = actions_dict['call']['amount']
+                    break
+
+                elif action == 'raise':
+                    # Get and validate raise amount
+                    min_amount = actions_dict['raise']['amount']['min']
+                    max_amount = actions_dict['raise']['amount']['max']
+
+                    print(f"Raise amount must be between {min_amount} and {max_amount}")
+                    amount = input(f"Enter raise amount >> ")
+
+                    try:
+                        amount = int(amount)
+                        if amount < min_amount or amount > max_amount:
+                            print(f"Amount must be between {min_amount} and {max_amount}")
+                            continue
+                        break
+                    except ValueError:
+                        print("Please enter a valid number")
+                        continue
+
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                print("Please try again")
+
         return action, amount
