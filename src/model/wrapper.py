@@ -30,7 +30,7 @@ class Agent(BasePokerPlayer):
         self.last_round_state = None
 
     def generate_uuid(self):
-        """Generates a random UUID for the player."""
+        """Generates a random temp UUID for the player."""
         #TODO: Make this acually random and unique
         return np.random.randint(1, 1000000)
 

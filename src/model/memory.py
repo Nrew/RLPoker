@@ -9,7 +9,11 @@ except ImportError:
 
 class MemoryBuffer:
     """Stores transitions for PPO update."""
-    def __init__(self, batch_size=config.BATCH_SIZE, buffer_size=config.BUFFER_SIZE, device=config.DEVICE):
+    def __init__(self,
+        batch_size=config.BATCH_SIZE,
+        buffer_size=config.BUFFER_SIZE,
+        device=config.DEVICE):
+        
         self.states = []
         self.actions = []
         self.log_probs = []
@@ -42,6 +46,7 @@ class MemoryBuffer:
         and adds the full trajectory to the main buffer.
         """
         if not self._traj_states:
+            self._clear_trajectory_buffer()
             return # No steps taken
 
         traj_len = len(self._traj_states)

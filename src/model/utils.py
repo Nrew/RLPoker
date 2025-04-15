@@ -249,8 +249,6 @@ def extract_state(hole_card, round_state, my_uuid, initial_stack, valid_actions=
         call_amount = 0
         min_raise = 0
         max_raise = 0
-        can_call = False
-        can_raise = False
 
         if valid_actions: # Use precise info if available
             call_action = next((a for a in valid_actions if a['action'] == 'call'), None)

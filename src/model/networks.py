@@ -10,7 +10,10 @@ except ImportError:
 
 class Actor(nn.Module):
     """Actor Network (Policy)"""
-    def __init__(self, state_dim=config.STATE_DIM, action_dim=config.ACTION_DIM, hidden_units=config.HIDDEN_UNITS):
+    def __init__(self,
+        state_dim=config.STATE_DIM,
+        action_dim=config.ACTION_DIM,
+        hidden_units=config.HIDDEN_UNITS):
         super(Actor, self).__init__()
         self.network = nn.Sequential(
             nn.Linear(state_dim, hidden_units),
@@ -35,7 +38,9 @@ class Actor(nn.Module):
 
 class Critic(nn.Module):
     """Critic Network (Value Function)"""
-    def __init__(self, state_dim=config.STATE_DIM, hidden_units=config.HIDDEN_UNITS):
+    def __init__(self,
+        state_dim=config.STATE_DIM,
+        hidden_units=config.HIDDEN_UNITS):
         super(Critic, self).__init__()
         self.network = nn.Sequential(
             nn.Linear(state_dim, hidden_units),
