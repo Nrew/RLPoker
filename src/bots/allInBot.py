@@ -1,13 +1,26 @@
 from pypokerengine.players import BasePokerPlayer
+import pypokerengine.utils.visualize_utils as U
 
 class AllInBot(BasePokerPlayer):
 
     def declare_action(self, valid_actions, hole_card, round_state):
         # valid_actions format => [raise_action_info, call_action_info, fold_action_info]
+        print(U.visualize_declare_action(valid_actions, hole_card, round_state, self.uuid))
+
         print(f'Round state: \n{round_state}')
+        print(f'Valid actions: {valid_actions}')
+        uuid = self.uuid
+        capital = 0
+
+        for player in round_state['seats']:
+            if player['uuid'] == uuid:
+                capital = player['stack']
+                break
+
         for action in valid_actions:
             if action['action'] == 'raise':
-                return 'raise', action['amount']['max']
+                print("We were just here!")
+                return 'raise', min(action['amount']['max'], capital)
         # Otherwise, just call.
         call_action_info = valid_actions[1]
         return call_action_info["action"], call_action_info["amount"]

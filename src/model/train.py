@@ -6,7 +6,7 @@ try:
     from . import config
     from .model import PPO
     from .wrapper import Agent
-    from ..bots.basicBot import BasicBot
+    from ..bots.randomBot import RandomBot
 except ImportError:
     import sys
     from pathlib import Path
@@ -14,11 +14,11 @@ except ImportError:
     import config
     from model import PPO
     from wrapper import Agent
-    from bots.basicBot import BasicBot
+    from ..bots.randomBot import RandomBot
 
 def choose_opponent(opponent_type="call"):
     """Helper function to select an opponent player instance."""
-    return BasicBot()
+    return RandomBot()
 
 def main():
     """Main training loop."""
