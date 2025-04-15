@@ -2,9 +2,14 @@
 from pypokerengine.players import BasePokerPlayer
 import numpy as np
 
-from . import config
-from .utils import extract_state, map_action_to_poker
-from .model import PPO
+try:
+    from . import config
+    from .utils import extract_state, map_action_to_poker
+    from .model import PPO
+except ImportError:
+    import config
+    from utils import extract_state, map_action_to_poker
+    from model import PPO
 
 class Agent(BasePokerPlayer):
     """
@@ -12,7 +17,7 @@ class Agent(BasePokerPlayer):
     and collects experience.
     """
     def __init__(self, ppo: PPO, player_name="PPO_RL_Agent"):
-        super().__init__()
+        super(BasePokerPlayer, self).__init__()
         self.algorithm = ppo
         self.player_name = player_name
         self.uuid = self.generate_uuid() # Initial temporary UUID
@@ -23,6 +28,11 @@ class Agent(BasePokerPlayer):
         self.stack_at_round_start = 0
         self.last_hole_card = None
         self.last_round_state = None
+
+    def generate_uuid(self):
+        """Generates a random UUID for the player."""
+        #TODO: Make this acually random and unique
+        return np.random.randint(1, 1000000)
 
     def set_uuid(self, uuid):
         """Called externally to set the official UUID from the engine."""

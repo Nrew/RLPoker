@@ -19,8 +19,9 @@ BUFFER_SIZE = BATCH_SIZE * 15   # Max steps to store in memory before forcing up
 NUM_TRAINING_GAMES = 10000      # Total number of games to simulate for training
 INITIAL_STACK = 1000            # Starting stack size for players
 SMALL_BLIND = 5                 # Small blind amount
+BIG_BLIND = SMALL_BLIND * 2     # Big blind amount for normilazation
 ANTE = 0                        # Ante amount
-MAX_ROUND = 10                  # Max rounds per game (keeps games from running infinitely long)
+MAX_ROUND = 15                  # Max rounds per game (keeps games from running infinitely long)
 MODEL_SAVE_PATH = "poker_ppo"   # Prefix for saving model files
 SAVE_INTERVAL = 200             # Save model every N games
 LOAD_MODEL = False              # Set to True to load a pre-trained model at the start
@@ -40,3 +41,4 @@ HIDDEN_UNITS = 128              # Number of units in hidden layers
 
 # --- Constants ---
 MAX_PLAYERS = NUM_OPPONENTS + 1 # Total players in the game (including the agent)
+EPSILON = 1e-6                  # Small value to prevent division by zero in calculations

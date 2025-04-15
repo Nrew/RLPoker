@@ -2,7 +2,11 @@
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
-from . import config
+
+try:
+    from . import config
+except ImportError:
+    import config
 
 class Actor(nn.Module):
     """Actor Network (Policy)"""

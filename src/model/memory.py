@@ -1,7 +1,11 @@
 # memory.py
 import numpy as np
 import torch
-from . import config
+
+try:
+    from . import config
+except ImportError:
+    import config
 
 class MemoryBuffer:
     """Stores transitions for PPO update."""

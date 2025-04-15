@@ -3,9 +3,16 @@ import numpy as np
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-from . import config
-from .networks import Actor, Critic
-from .memory import MemoryBuffer
+
+try:
+    from . import config
+    from .networks import Actor, Critic
+    from .memory import MemoryBuffer
+except ImportError:
+    # Fallback for running script directly
+    import config
+    from networks import Actor, Critic
+    from memory import MemoryBuffer
 
 class PPO:
     """Implements the Proximal Policy Optimization algorithm logic."""

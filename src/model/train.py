@@ -1,34 +1,24 @@
-# train.py
 import time
 import numpy as np
 from pypokerengine.api.game import setup_config, start_poker
-from pypokerengine.players import FoldPlayer, CallPlayer, RandomPlayer
 
-# Import local modules using relative imports if in a package, or standard if run directly
 try:
     from . import config
     from .model import PPO
     from .wrapper import Agent
+    from ..bots.basicBot import BasicBot
 except ImportError:
-    # Fallback for running script directly
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
     import config
     from model import PPO
     from wrapper import Agent
-
+    from bots.basicBot import BasicBot
 
 def choose_opponent(opponent_type="call"):
     """Helper function to select an opponent player instance."""
-    if opponent_type == "fold":
-        return FoldPlayer()
-    elif opponent_type == "random":
-        return RandomPlayer()
-    elif opponent_type == "ppo":
-        print("Warning: Training against PPO opponent requires separate agent instance.")
-        # You would need to initialize another PPO and  here
-        # Be careful about shared resources or unintended interactions if they share logic/memory
-        return CallPlayer() # Fallback for now
-    else: # Default to CallPlayer
-        return CallPlayer()
+    return BasicBot()
 
 def main():
     """Main training loop."""

@@ -8,7 +8,6 @@ except ImportError:
 
 
 # --- Constants ---
-EPSILON = 1e-6 # Small value to avoid division by zero
 STREET_MAP = {'preflop': 0, 'flop': 1, 'turn': 2, 'river': 3}
 RANK_MAP = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
             'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14}
@@ -32,6 +31,9 @@ def encode_card(card_str):
 
 def card_strs_to_pokerengine_int(card_strs):
     """Converts a list of card strings ['S2', 'HA'] to PyPokerEngine's internal integer representation."""
+    if not isinstance(card_strs, (list, tuple)) or not all (isinstance(s, str) for s in card_strs):
+        # print(f'Warning: Invalid input format for card_strs_to_pokerengine_int: {card_strs}')
+        return []
     try:
         return gen_cards(card_strs) # gen_cards handles the conversion
     except Exception as e:
@@ -50,6 +52,10 @@ def _get_board_texture(community_cards):
     flop_ranks = [RANK_MAP.get(c[1:], 0) for c in flop_cards]
     flop_suits = [SUIT_MAP.get(c[0], 0) for c in flop_cards]
 
+    if len(flop_ranks) != 3 or len (flop_suits) != 3:
+        # print(f"Warning: Invalid flop cards for texture extraction: {flop_cards}")
+        return features
+
     # Flop Paired: Check if any rank appears more than once
     if len(set(flop_ranks)) < 3:
         features['flop_paired'] = 1.0
@@ -60,6 +66,9 @@ def _get_board_texture(community_cards):
 
     if len(community_cards) >= 4:
         turn_card = community_cards[3]
+        if len(turn_card) < 2:
+            # print(f"Warning: Invalid turn card for texture extraction: {turn_card}")
+            return features
         turn_suit = SUIT_MAP.get(turn_card[0], 0)
         # Turn Monotone Check (if flop was already monotone, or 3 suits match now)
         if features['flop_mono'] == 1.0 and turn_suit == flop_suits[0]:
@@ -73,7 +82,7 @@ def _get_board_texture(community_cards):
 def _get_blinds_info(round_state, seats, my_uuid):
     """Identifies SB/BB positions and amounts (more robustly)."""
     small_blind_amount = round_state.get("small_blind_amount", config.SMALL_BLIND)
-    big_blind_amount = small_blind_amount * 2 # Assume standard BB=2*SB
+    big_blind_amount = config.BIG_BLIND
     sb_player_pos = -1
     bb_player_pos = -1
 
@@ -87,10 +96,10 @@ def _get_blinds_info(round_state, seats, my_uuid):
              uuid = action.get("uuid")
              amount = action.get("amount", 0)
 
-             if "SMALL" in action_type and "BLIND" in action_type:
+             if "SMALLBLIND" in action_type or (action_type == "POST" and amount == small_blind_amount):
                  sb_player_pos = next((i for i, p in enumerate(seats) if p['uuid'] == uuid), -1)
                  small_blind_amount = max(small_blind_amount, amount) # Update SB if posted amount > config
-             elif "BIG" in action_type and "BLIND" in action_type:
+             elif "BIGBLIND" in action_type or (action_type == "POST" and amount > small_blind_amount):
                  bb_player_pos = next((i for i, p in enumerate(seats) if p['uuid'] == uuid), -1)
                  big_blind_amount = max(big_blind_amount, amount)
 
@@ -155,7 +164,7 @@ def extract_state(hole_card, round_state, my_uuid, initial_stack, valid_actions=
             print(f"Error: Agent UUID {my_uuid} not found in round_state seats. Returning zeros.")
             return np.zeros(config.STATE_DIM, dtype=np.float32)
 
-        my_stack = my_seat_info['stack']
+        my_stack = my_seat_info.get(['stack'], 0 )
         num_active_players = len(active_player_uuids)
         dealer_btn_seat_index = round_state.get('dealer_btn', 0)
         community_cards_str = round_state.get('community_card', [])
@@ -167,7 +176,7 @@ def extract_state(hole_card, round_state, my_uuid, initial_stack, valid_actions=
         # --- Blinds Info ---
         # Get actual BB amount for normalization (handles edge cases like HU SB being dealer)
         big_blind_amount, is_sb, is_bb = _get_blinds_info(round_state, seats, my_uuid)
-        bb = max(big_blind_amount, EPSILON) # Ensure BB is at least epsilon
+        bb = max(big_blind_amount, config.EPSILON) # Ensure BB is at least epsilon
 
         # === Feature Set ===
 
@@ -216,13 +225,13 @@ def extract_state(hole_card, round_state, my_uuid, initial_stack, valid_actions=
         # 6. Stack-to-Pot Ratio (SPR) (1 feature) - Effective stack vs pot
         # Use smaller of my stack or average opponent stack as effective stack
         effective_stack = min(my_stack, avg_opp_stack) if avg_opp_stack > 0 else my_stack
-        spr = effective_stack / (pot_size + EPSILON)
+        spr = effective_stack / (pot_size + config.EPSILON)
         state.append(np.clip(spr / 10.0, 0, 1)) # Normalize SPR (e.g., clip > 10 and scale 0-1)
 
         # 7. Position (Relative to Button) (1 feature)
         if player_count > 1:
             relative_position = (my_seat_index - dealer_btn_seat_index + player_count) % player_count
-            norm_position = relative_position / float(player_count -1 + EPSILON) # Normalize 0 to 1
+            norm_position = relative_position / float(player_count -1 + config.EPSILON) # Normalize 0 to 1
         else: norm_position = 0.0
         state.append(norm_position)
 
@@ -272,13 +281,13 @@ def extract_state(hole_card, round_state, my_uuid, initial_stack, valid_actions=
              # Cannot reliably estimate min/max raise without valid_actions
 
         # 11. Amount To Call (Normalized by Pot) (1 feature)
-        norm_call_amount_pot = call_amount / (pot_size + EPSILON)
+        norm_call_amount_pot = call_amount / (pot_size + config.EPSILON)
         state.append(np.clip(norm_call_amount_pot, 0, 1.5)) # Clip relative call amount
 
         # 12. Pot Odds (1 feature)
         pot_odds = 0.0
         if call_amount > 0:
-            pot_odds = call_amount / (pot_size + call_amount + EPSILON)
+            pot_odds = call_amount / (pot_size + call_amount + config.EPSILON)
         state.append(pot_odds) # Naturally normalized between 0 and 1
 
         # 13. Number of Bets/Raises This Street (1 feature)
