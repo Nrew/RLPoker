@@ -42,10 +42,13 @@ class PPO:
             # The caller should ideally prevent invalid states.
             action_idx = 0 # Fold
             log_prob = torch.tensor(0.0, device=self.device)
-            value = torch.tensor(0.0, device=self.device)
-            return action_idx, log_prob, value # Ensure tensors are returned
+            value = torch.tensor(0.0, device=self.device).unsqueeze(0)
+            return action_idx, log_prob, value.squeeze()
 
         state = torch.FloatTensor(state_np).unsqueeze(0).to(self.device) # Add batch dim
+        
+        self.actor.eval()
+        self.critic.eval()
         with torch.no_grad():
             action, log_prob, _ = self.actor.get_action(state)
             value = self.critic(state)
@@ -62,33 +65,46 @@ class PPO:
     def update(self):
         """Performs the PPO update step using data from memory."""
         if not self.memory.ready():
-            # print("Skipping update: Not enough data in memory.")
             return False # Indicate update did not happen
 
         print(f"Starting PPO update #{self.learn_step_counter + 1} with {len(self.memory)} samples...")
         actor_losses, critic_losses, entropy_bonuses = [], [], []
 
+        try:
+            batch_data = self.memory.prepare_update_data()
+            n_samples = batch_data['n_samples']
+        except RuntimeError as e:
+            print(f"Error preparing update data: {e}")
+            return False # Update impossible
+    
+        # --- Update loop ---
+    
         # Set networks to training mode
         self.actor.train()
         self.critic.train()
 
-        # Iterate over experience batches multiple times (epochs)
-        for _ in range(config.PPO_EPOCHS):
-            batch_generator = self.memory.generate_batches() # Regenerates GAE/returns each epoch start
+        for epoch in range(config.PPO_EPOCHS):
+            indices = np.arange(n_samples)
+            np.random.shuffle(indices)
+            
+            for start_idx in range(0, n_samples, config.BATCH_SIZE):
+                end_idx = min(start_idx + config.BATCH_SIZE, n_samples)
+                if start_idx >= end_idx: continue
 
-            for batch in batch_generator:
-                states = batch['states']
-                actions = batch['actions']
-                old_log_probs = batch['old_log_probs']
-                advantages = batch['advantages']
-                returns = batch['returns']
+                minibatch_indices = indices[start_idx:end_idx]
+                
+                states = batch_data['states'][minibatch_indices]
+                actions = batch_data['actions'][minibatch_indices]
+                old_log_probs = batch_data['old_log_probs'][minibatch_indices]
+                mb_advantages = batch_data['advantages'][minibatch_indices]
+                mb_returns = batch_data['returns'][minibatch_indices] # V_target
+                
 
                 # Normalize advantages (per mini-batch) - crucial for stability
-                advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+                advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + config.EPSILON)
 
                 # --- Calculate Actor Loss (Policy Loss) ---
-                # Evaluate current policy
-                action_probs = self.actor(states) # Get new probabilities
+                action_probs = self.actor(states)
                 dist = torch.distributions.Categorical(action_probs)
                 new_log_probs = dist.log_prob(actions)
                 entropy = dist.entropy().mean()
@@ -97,57 +113,47 @@ class PPO:
                 ratio = torch.exp(new_log_probs - old_log_probs)
 
                 # Clipped Surrogate Objective
-                surr1 = ratio * advantages
-                surr2 = torch.clamp(ratio, 1.0 - config.PPO_EPSILON, 1.0 + config.PPO_EPSILON) * advantages
+                surr1 = ratio * mb_advantages
+                surr2 = torch.clamp(ratio, 1.0 - config.PPO_EPSILON, 1.0 + config.PPO_EPSILON) * mb_advantages
                 actor_loss = -torch.min(surr1, surr2).mean()
 
                 # --- Calculate Critic Loss (Value Loss) ---
-                # Get current value estimates
-                values = self.critic(states).squeeze() # Remove extra dim
-                # Mean Squared Error loss against calculated returns (targets)
-                critic_loss = F.mse_loss(values, returns)
+                values = self.critic(states).squeeze(-1)
+                critic_loss = F.mse_loss(values, mb_returns)
 
                 # --- Calculate Total Loss ---
                 total_loss = actor_loss + config.VALUE_LOSS_COEFF * critic_loss - config.ENTROPY_BETA * entropy
-
+                
                 # --- Backpropagation and Optimization ---
-                # Actor
                 self.actor_optimizer.zero_grad()
-                # Retain graph if critic loss depends on actor output (not typical here, but good practice)
-                actor_loss.backward(retain_graph=False)
-                torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=0.5) # Optional gradient clipping
-                self.actor_optimizer.step()
-
-                # Critic
                 self.critic_optimizer.zero_grad()
-                # Calculate critic loss again if necessary or use the one computed above
-                critic_loss_term = config.VALUE_LOSS_COEFF * critic_loss # Scale before backward pass
-                critic_loss_term.backward()
-                torch.nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=0.5) # Optional gradient clipping
+                total_loss.backward()
+                
+                torch.nn.utils.clip_grad_norm_(self.actor.parameters(), max_norm=0.5)
+                torch.nn.utils.clip_grad_norm_(self.critic.parameters(), max_norm=0.5)
+                
+                self.actor_optimizer.step()
                 self.critic_optimizer.step()
+                
 
                 # --- Logging (optional per mini-batch) ---
                 actor_losses.append(actor_loss.item())
                 critic_losses.append(critic_loss.item())
                 entropy_bonuses.append(entropy.item())
 
-
-        # Clear memory now handled within generate_batches loop start
-        # self.memory.clear_memory() # Memory is cleared when generate_batches is first called
-
-        # Log average losses for the update step
-        avg_actor_loss = np.mean(actor_losses)
-        avg_critic_loss = np.mean(critic_losses)
-        avg_entropy = np.mean(entropy_bonuses)
-        print(f"Update complete. Avg Actor Loss: {avg_actor_loss:.4f}, Avg Critic Loss: {avg_critic_loss:.4f}, Avg Entropy: {avg_entropy:.4f}")
-
+        # --- Update step complete ---
         self.learn_step_counter += 1
 
-        # Set networks back to evaluation mode
+        # Log average losses for the update step
+        avg_actor_loss = np.mean(actor_losses)   if actor_losses else 0
+        avg_critic_loss = np.mean(critic_losses) if critic_losses else 0
+        avg_entropy = np.mean(entropy_bonuses)   if entropy_bonuses else 0
+        print(f"Update #{self.learn_step_counter} complete. Avg Actor Loss: {avg_actor_loss:.4f}, Avg Critic Loss: {avg_critic_loss:.4f}, Avg Entropy: {avg_entropy:.4f}")
+
         self.actor.eval()
         self.critic.eval()
 
-        return True # Indicate update happened
+        return True # Update successful
 
 
     def save_model(self, path_prefix):

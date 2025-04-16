@@ -2,7 +2,7 @@
 import torch
 
 # --- PPO Hyperparameters ---
-STATE_DIM = 28                  # Dimension of the state vector [Original (21) + Win Rate (1) + Pot Odds (1) + SPR (1) + Bet Count (1) + Board Texture (3) = 28] (update if features change) 
+STATE_DIM = 30                  # Dimension of the state vector [Original (21) + Win Rate (1) + Pot Odds (1) + SPR (1) + Bet Count (1) + Board Texture (3) = 28] (update if features change) 
 ACTION_DIM = 5                  # Discrete actions: Fold, Call, Raise Min, Raise Pot, All-in
 GAMMA = 0.99                    # Discount factor for rewards
 PPO_EPSILON = 0.2               # PPO clipping parameter (ratio constraint)

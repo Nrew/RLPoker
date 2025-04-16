@@ -14,7 +14,7 @@ except ImportError:
     import config
     from model import PPO
     from wrapper import Agent
-    from ..bots.randomBot import RandomBot
+    from bots.randomBot import RandomBot
 
 def choose_opponent(opponent_type="call"):
     """Helper function to select an opponent player instance."""
@@ -112,7 +112,7 @@ def main():
              print("Skipping game result and potential update.")
              # Clear any potentially corrupted trajectory data from memory
              ppo_algo.memory._clear_trajectory_buffer()
-             continue # Move to the next game
+             return # Move to the next game
 
     # --- Final Save ---
     ppo_algo.save_model(config.MODEL_SAVE_PATH)
