@@ -5,22 +5,26 @@ class AllInBot(BasePokerPlayer):
 
     def declare_action(self, valid_actions, hole_card, round_state):
         # valid_actions format => [raise_action_info, call_action_info, fold_action_info]
-        print(U.visualize_declare_action(valid_actions, hole_card, round_state, self.uuid))
-
-        print(f'Round state: \n{round_state}')
-        print(f'Valid actions: {valid_actions}')
+        # print(U.visualize_declare_action(valid_actions, hole_card, round_state, self.uuid))
+        #
+        # print(f'Round state: \n{round_state}')
+        # print(f'Valid actions: {valid_actions}')
         uuid = self.uuid
         capital = 0
+        other_players_capital = []
 
         for player in round_state['seats']:
+            other_players_capital.append(player['stack'])
+            # print(f'PLAYER: {self.uuid}, {player['stack']}')
             if player['uuid'] == uuid:
                 capital = player['stack']
-                break
 
+        # print(f"OTHER CAPITAL: {other_players_capital}")
         for action in valid_actions:
             if action['action'] == 'raise':
-                print("We were just here!")
-                return 'raise', min(action['amount']['max'], capital)
+                # print("We were just here!")
+                other_player_min = min(other_players_capital)
+                return 'raise', min(action['amount']['max'], capital, other_player_min)
         # Otherwise, just call.
         call_action_info = valid_actions[1]
         return call_action_info["action"], call_action_info["amount"]

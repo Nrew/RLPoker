@@ -10,6 +10,19 @@ class RandomBot(BasePokerPlayer):  # Do not forget to make parent class as "Base
         # print(valid_actions)
         action_info = valid_actions[random.randint(0, len(valid_actions) - 1)]
         action, amount = action_info["action"], action_info["amount"]
+        uuid = self.uuid
+
+        capital = 0
+        for player in round_state['seats']:
+            if player['uuid'] == uuid:
+                capital = player['stack']
+                break
+
+        if action == 'raise':
+            if capital < amount['min']:
+                return 'fold', 0
+            return action, min(capital,amount['min'])
+
         return action, amount
 
     def receive_game_start_message(self, game_info):
