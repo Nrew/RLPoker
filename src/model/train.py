@@ -55,7 +55,7 @@ def main():
         game_config = setup_config(
             max_round=config.MAX_ROUND,
             initial_stack=config.INITIAL_STACK,
-            small_blind=config.SMALL_BLIND,
+            small_blind_amount=config.SMALL_BLIND,
             ante=config.ANTE
         )
 

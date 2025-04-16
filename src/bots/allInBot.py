@@ -7,7 +7,7 @@ class AllInBot(BasePokerPlayer):
         # valid_actions format => [raise_action_info, call_action_info, fold_action_info]
         # print(U.visualize_declare_action(valid_actions, hole_card, round_state, self.uuid))
         #
-        # print(f'Round state: \n{round_state}')
+        print(f'Round state: \n{round_state}')
         # print(f'Valid actions: {valid_actions}')
         uuid = self.uuid
         capital = 0
