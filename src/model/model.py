@@ -96,12 +96,12 @@ class PPO:
                 states = batch_data['states'][minibatch_indices]
                 actions = batch_data['actions'][minibatch_indices]
                 old_log_probs = batch_data['old_log_probs'][minibatch_indices]
-                mb_advantages = batch_data['advantages'][minibatch_indices]
-                mb_returns = batch_data['returns'][minibatch_indices] # V_target
+                advantages = batch_data['advantages'][minibatch_indices]
+                returns = batch_data['returns'][minibatch_indices] # V_target
                 
 
                 # Normalize advantages (per mini-batch) - crucial for stability
-                advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + config.EPSILON)
+                advantages = (advantages - advantages.mean()) / (advantages.std() + config.EPSILON)
 
                 # --- Calculate Actor Loss (Policy Loss) ---
                 action_probs = self.actor(states)
@@ -113,13 +113,13 @@ class PPO:
                 ratio = torch.exp(new_log_probs - old_log_probs)
 
                 # Clipped Surrogate Objective
-                surr1 = ratio * mb_advantages
-                surr2 = torch.clamp(ratio, 1.0 - config.PPO_EPSILON, 1.0 + config.PPO_EPSILON) * mb_advantages
+                surr1 = ratio * advantages
+                surr2 = torch.clamp(ratio, 1.0 - config.PPO_EPSILON, 1.0 + config.PPO_EPSILON) * advantages
                 actor_loss = -torch.min(surr1, surr2).mean()
 
                 # --- Calculate Critic Loss (Value Loss) ---
                 values = self.critic(states).squeeze(-1)
-                critic_loss = F.mse_loss(values, mb_returns)
+                critic_loss = F.mse_loss(values, returns)
 
                 # --- Calculate Total Loss ---
                 total_loss = actor_loss + config.VALUE_LOSS_COEFF * critic_loss - config.ENTROPY_BETA * entropy
