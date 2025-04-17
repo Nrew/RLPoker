@@ -34,12 +34,17 @@ class MemoryBuffer:
 
     def store_step(self, state, action, log_prob, value):
         """Stores data for a single step within the current trajectory."""
+        self._traj_states.append(state)  # Keep as numpy for now
+        self._traj_actions.append(action.item() if isinstance(action, torch.Tensor) else int(action))
+        self._traj_log_probs.append(log_prob.item() if isinstance(log_prob, torch.Tensor) else float(log_prob))
+        value_item = value.item() if isinstance(value, torch.Tensor) and value.numel() == 1 else value.cpu().detach().numpy().flatten()[0] if isinstance(value, torch.Tensor) else float(value)
+        self._traj_values.append(value_item)
         # Ensure data is on CPU for storage in Python lists
-        self._traj_states.append(state) # Assuming state is already numpy array
-        self._traj_actions.append(action.cpu().item() if isinstance(action, torch.Tensor) else int(action))
-        self._traj_log_probs.append(log_prob.cpu().detach().numpy() if isinstance(log_prob, torch.Tensor) else float(log_prob))
-        value_np = value.cpu().detach().numpy().flatten()
-        self._traj_values.append(value_np[0] if value_np.size == 1 else 0.0) 
+        # self._traj_states.append(state) # Assuming state is already numpy array
+        # self._traj_actions.append(action.cpu().item() if isinstance(action, torch.Tensor) else int(action))
+        # self._traj_log_probs.append(log_prob.cpu().detach().numpy() if isinstance(log_prob, torch.Tensor) else float(log_prob))
+        # value_np = value.cpu().detach().numpy().flatten()
+        # self._traj_values.append(value_np[0] if value_np.size == 1 else 0.0)
    
     def finish_trajectory(self, final_reward):
         """

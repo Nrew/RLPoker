@@ -93,7 +93,7 @@ def main():
 
             # --- Logging and Saving ---
             if game_num % config.SAVE_INTERVAL == 0:
-                ppo_algo.save_model(config.MODEL_SAVE_PATH)
+                ppo_algo.save_model(config.MODEL_SAVE_PATH, game_num)
                 # Log progress
                 current_time = time.time()
                 elapsed = current_time - start_time
@@ -115,7 +115,7 @@ def main():
              return # Move to the next game
 
     # --- Final Save ---
-    ppo_algo.save_model(config.MODEL_SAVE_PATH)
+    ppo_algo.save_model(config.MODEL_SAVE_PATH, 'final')
     print("\n--- Training Finished ---")
     print(f"Total games played: {games_played}")
     print(f"Total PPO updates: {updates_done}")

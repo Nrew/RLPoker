@@ -4,6 +4,7 @@ import torch
 import torch.optim as optim
 import torch.nn.functional as F
 
+
 try:
     from . import config
     from .networks import Actor, Critic
@@ -156,11 +157,12 @@ class PPO:
         return True # Update successful
 
 
-    def save_model(self, path_prefix):
+    def save_model(self, path_prefix, game_num):
         """Saves actor and critic models."""
         try:
-            torch.save(self.actor.state_dict(), f"{path_prefix}_actor.pth")
-            torch.save(self.critic.state_dict(), f"{path_prefix}_critic.pth")
+            print(f"Attempting to save to {path_prefix}")
+            torch.save(self.actor.state_dict(), f"{path_prefix}_actor_{game_num}.pth")
+            torch.save(self.critic.state_dict(), f"{path_prefix}_critic_{game_num}.pth")
             print(f"Models saved successfully to {path_prefix}_*.pth")
         except Exception as e:
             print(f"Error saving models: {e}")
