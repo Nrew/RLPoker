@@ -104,12 +104,12 @@ def run_training_episode(process_id, shared_dict, config_dict):
                 }
                 all_experiences.append(experience)
 
-                print(f"Worker {process_id} collected {len(current_game_states)} steps in game {games_played}")
+                # print(f"Worker {process_id} collected {len(current_game_states)} steps in game {games_played}")
             else:
                 print(f"Worker {process_id} collected no experiences in game {games_played}")
 
-            if games_played % 10 == 0:
-                print(f"Worker {process_id} completed {games_played} games")
+            # if games_played % 10 == 0:
+            #     print(f"Worker {process_id} completed {games_played} games")
 
         except Exception as e:
             print(f"Error in worker {process_id}, game {games_played}: {e}")
@@ -121,7 +121,7 @@ def run_training_episode(process_id, shared_dict, config_dict):
         for exp in all_experiences:
             shared_dict['experiences'].append(exp)
         shared_dict['games_completed'] += games_played
-        print(f"Worker {process_id} finished after playing {games_played} games with {total_experiences} total experience steps")
+        # print(f"Worker {process_id} finished after playing {games_played} games with {total_experiences} total experience steps")
 
     return
 
@@ -148,7 +148,7 @@ def main():
         'PLAYER_NAME_PREFIX': config.PLAYER_NAME_PREFIX,
         'NUM_OPPONENTS': config.NUM_OPPONENTS,
         'OPPONENT_TYPE': config.OPPONENT_TYPE,
-        'games_per_worker': 20  # Each worker plays this many games before reporting back
+        'games_per_worker': 5   # Each worker plays this many games before reporting back
     }
 
     # Setup for parallel execution

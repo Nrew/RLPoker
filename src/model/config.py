@@ -14,14 +14,14 @@ GAE_LAMBDA = 0.95               # Lambda parameter for Generalized Advantage Est
 VALUE_LOSS_COEFF = 0.5          # Coefficient for the critic's value loss
 
 # --- Training Configuration ---
-BATCH_SIZE = 256                # Number of steps (transitions) per PPO update batch
+BATCH_SIZE = 1024                # Number of steps (transitions) per PPO update batch
 BUFFER_SIZE = BATCH_SIZE * 15   # Max steps to store in memory before forcing update
-NUM_TRAINING_GAMES = 2_000      # Total number of games to simulate for training
+NUM_TRAINING_GAMES = 4800      # Total number of games to simulate for training
 INITIAL_STACK = 1000            # Starting stack size for players
 SMALL_BLIND = 5                 # Small blind amount
 BIG_BLIND = SMALL_BLIND * 2     # Big blind amount for normilazation
 ANTE = 0                        # Ante amount
-MAX_ROUND = 15                  # Max rounds per game (keeps games from running infinitely long)
+MAX_ROUND = 100                  # Max rounds per game (keeps games from running infinitely long)
 MODEL_SAVE_PATH = "../checkpoints/poker_ppo"   # Prefix for saving model files
 SAVE_INTERVAL = 500             # Save model every N games
 LOAD_MODEL = False              # Set to True to load a pre-trained model at the start
@@ -34,7 +34,7 @@ PLAYER_NAME_PREFIX = "Agent_"   # Prefix for naming player instances
 # --- Device Configuration ---
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-print(f"Using device: {DEVICE}")
+# print(f"Using device: {DEVICE}")
 
 # --- Network Architecture ---
 HIDDEN_UNITS = 512              # Number of units in hidden layers
