@@ -35,6 +35,8 @@ class PPO:
 
         self.learn_step_counter = 0
 
+        self.actions_file = open("logs/actions.txt", "a")
+
 
     def select_action(self, state_np):
         """Selects action, gets log prob and value estimate for a single state."""
@@ -46,6 +48,8 @@ class PPO:
             action_idx = 0 # Fold
             log_prob = torch.tensor(0.0, device=self.device)
             value = torch.tensor(0.0, device=self.device).unsqueeze(0)
+            self.actions_file.write(f"{action_idx}\n")
+            self.actions_file.flush()
             return action_idx, log_prob, value.squeeze()
 
         state = torch.FloatTensor(state_np).unsqueeze(0).to(self.device) # Add batch dim
@@ -58,6 +62,8 @@ class PPO:
 
         # Store step data (will be moved to CPU in memory.store_step)
         self.memory.store_step(state_np, action, log_prob, value)
+        self.actions_file.write(f"{action}\n")
+        self.actions_file.flush()
 
         return action.item(), log_prob, value # Return CPU tensors/values for storage if needed
 
