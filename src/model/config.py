@@ -16,13 +16,13 @@ VALUE_LOSS_COEFF = 0.5          # Coefficient for the critic's value loss
 # --- Training Configuration ---
 BATCH_SIZE = 1024                # Number of steps (transitions) per PPO update batch
 BUFFER_SIZE = BATCH_SIZE * 15   # Max steps to store in memory before forcing update
-NUM_TRAINING_GAMES = 4800      # Total number of games to simulate for training
+NUM_TRAINING_GAMES = 55000      # Total number of games to simulate for training
 INITIAL_STACK = 1000            # Starting stack size for players
 SMALL_BLIND = 5                 # Small blind amount
-BIG_BLIND = SMALL_BLIND * 2     # Big blind amount for normilazation
+BIG_BLIND = SMALL_BLIND * 2     # Big blind amount for normalization
 ANTE = 0                        # Ante amount
-MAX_ROUND = 100                  # Max rounds per game (keeps games from running infinitely long)
-MODEL_SAVE_PATH = "../checkpoints/poker_ppo"   # Prefix for saving model files
+MAX_ROUND = 2                  # Max rounds per game (keeps games from running infinitely long)
+MODEL_SAVE_PATH = "/home/dan/RLPoker/src/model/checkpoints/"   # Prefix for saving model files
 SAVE_INTERVAL = 500             # Save model every N games
 LOAD_MODEL = False              # Set to True to load a pre-trained model at the start
 

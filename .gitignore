@@ -1,5 +1,7 @@
 # Project Specific
 src/checkpoints/
+src/checkpoints_old/
+checkpoints/
 
 # Virtual Environment
 .venv/

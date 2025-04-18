@@ -13,24 +13,24 @@ def process_poker_state_for_nn(hole_card, round_state, uuid):
     # Initialize the structured state
     state = {}
 
-    # 1. Process hole cards - convert to rank and suit encoding
+    # Process hole cards - convert to rank and suit encoding
     state['hole_cards'] = []
     for card in hole_card:
         suit = card[0]  # C, D, H, S
         rank = card[1]  # A, 2-9, T, J, Q, K
         state['hole_cards'].append({'rank': rank, 'suit': suit})
 
-    # 2. Process community cards
+    # Process community cards
     state['community_cards'] = []
     for card in round_state['community_card']:
         suit = card[0]
         rank = card[1]
         state['community_cards'].append({'rank': rank, 'suit': suit})
 
-    # 3. Game stage/street
+    # Game stage/street
     state['street'] = round_state['street']
 
-    # 4. Position information
+    # Position information
     dealer_pos = round_state['dealer_btn']
     player_count = len(round_state['seats'])
     player_idx = None
@@ -50,7 +50,7 @@ def process_poker_state_for_nn(hole_card, round_state, uuid):
     else:
         state['position'] = -1  # Error case
 
-    # 5. Pot odds and stack information
+    # Pot odds and stack information
     total_pot = round_state['pot']['main']['amount']
     for side_pot in round_state['pot']['side']:
         total_pot += side_pot['amount']
@@ -80,7 +80,7 @@ def process_poker_state_for_nn(hole_card, round_state, uuid):
     state['my_stack_ratio'] = my_stack / total_chips if total_chips > 0 else 0
     state['pot_ratio'] = total_pot / total_chips if total_chips > 0 else 0
 
-    # 6. Action history
+    # Action history
     state['action_history'] = {}
     for street, actions in round_state['action_histories'].items():
         state['action_history'][street] = []
@@ -98,11 +98,11 @@ def process_poker_state_for_nn(hole_card, round_state, uuid):
                 'amount_ratio': amount_ratio
             })
 
-    # 7. Count active players
+    # Count active players
     active_players = [seat for seat in round_state['seats'] if seat['state'] == 'participating']
     state['active_player_count'] = len(active_players)
 
-    # 8. Last aggressive action
+    # Last aggressive action
     state['last_aggressor'] = None
     state['last_raise_ratio'] = 0
 
@@ -115,7 +115,7 @@ def process_poker_state_for_nn(hole_card, round_state, uuid):
                 state['last_raise_ratio'] = action['amount'] / total_pot if total_pot > 0 else 0
                 break
 
-    # 9. Calculate immediate pot odds (if facing a bet)
+    # Calculate immediate pot odds (if facing a bet)
     state['pot_odds'] = 0
     state['facing_amount'] = 0
     if current_street in round_state['action_histories']:

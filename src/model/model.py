@@ -1,4 +1,6 @@
 # ppo_core.py
+import os
+
 import numpy as np
 import torch
 import torch.optim as optim
@@ -145,7 +147,6 @@ class PPO:
         # --- Update step complete ---
         self.learn_step_counter += 1
 
-        # Log average losses for the update step
         avg_actor_loss = np.mean(actor_losses)   if actor_losses else 0
         avg_critic_loss = np.mean(critic_losses) if critic_losses else 0
         avg_entropy = np.mean(entropy_bonuses)   if entropy_bonuses else 0
@@ -154,15 +155,33 @@ class PPO:
         self.actor.eval()
         self.critic.eval()
 
-        return True # Update successful
+        self.log_metrics(avg_entropy, avg_critic_loss, avg_actor_loss)
 
+        return True
+
+    @staticmethod
+    def log_metrics(entropy, critic_loss, actor_loss):
+        os.makedirs("logs", exist_ok=True)
+        with open("logs/entropy.txt", "a") as entropy_file:
+            entropy_file.write(f"{entropy}\n")
+
+        with open("logs/critic_loss.txt", "a") as critic_loss_file:
+            critic_loss_file.write(f"{critic_loss}\n")
+
+        with open("logs/actor_loss.txt", "a") as actor_loss_file:
+            actor_loss_file.write(f"{actor_loss}\n")
 
     def save_model(self, path_prefix, game_num):
         """Saves actor and critic models."""
         try:
+            os.makedirs(os.path.dirname(path_prefix), exist_ok=True)
             print(f"Attempting to save to {path_prefix}")
             torch.save(self.actor.state_dict(), f"{path_prefix}_actor_{game_num}.pth")
             torch.save(self.critic.state_dict(), f"{path_prefix}_critic_{game_num}.pth")
+            torch.save(self.actor.state_dict(), f"{path_prefix}_actor_latest.pth")
+            print(f" Saved To {path_prefix}_actor_latest.pth")
+            torch.save(self.critic.state_dict(), f"{path_prefix}_critic_latest.pth")
+            print(f"Saved to {path_prefix}_critic_latest.pth")
             print(f"Models saved successfully to {path_prefix}_*.pth")
         except Exception as e:
             print(f"Error saving models: {e}")
@@ -177,8 +196,25 @@ class PPO:
             # Set to eval mode after loading
             self.actor.eval()
             self.critic.eval()
-            print(f"Models loaded successfully from {path_prefix}_*.pth")
+            print(f"Models loaded successfully from {path_prefix}_actor_latest.pth")
         except FileNotFoundError:
             print(f"Warning: Model files not found at {path_prefix}_*. Starting from scratch.")
         except Exception as e:
             print(f"Error loading models: {e}. Starting from scratch.")
+
+    def load_latest(self, path_prefix):
+        """Loads actor and critic models."""
+        try:
+            self.actor.load_state_dict(torch.load(f"{path_prefix}_actor_latest.pth", map_location=self.device))
+            self.critic.load_state_dict(torch.load(f"{path_prefix}_critic_latest.pth", map_location=self.device))
+            self.actor.to(self.device)
+            self.critic.to(self.device)
+            # Set to eval mode after loading
+            self.actor.eval()
+            self.critic.eval()
+            print(f"Models loaded successfully from {path_prefix}_latest.pth")
+        except FileNotFoundError:
+            print(f"Warning: Model files not found at {path_prefix}_*. Starting from scratch. (Load Latest)")
+        except Exception as e:
+            print(f"Error loading models: {e}. Starting from scratch. (Load Latest)")
+
