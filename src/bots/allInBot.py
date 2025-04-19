@@ -1,5 +1,4 @@
 from pypokerengine.players import BasePokerPlayer
-import pypokerengine.utils.visualize_utils as U
 
 class AllInBot(BasePokerPlayer):
 

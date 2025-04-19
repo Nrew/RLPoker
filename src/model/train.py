@@ -41,7 +41,6 @@ def main():
 
     # --- Training Loop ---
     start_time = time.time()
-    total_steps = 0
     games_played = 0
     updates_done = 0
     all_game_rewards = [] # Track final stack relative to start for rough progress
@@ -49,7 +48,6 @@ def main():
 
     print(f"Starting training for {config.NUM_TRAINING_GAMES} games...")
     for game_num in range(1, config.NUM_TRAINING_GAMES + 1):
-        # print(f"\n--- Starting Game {game_num}/{config.NUM_TRAINING_GAMES} ---")
 
         # Setup game configuration for each new game
         game_config = setup_config(
@@ -69,12 +67,11 @@ def main():
 
         # Run the game
         try:
-            # verbose=0 suppresses PyPokerEngine's default console output
             game_result = start_poker(game_config, verbose=0)
             games_played += 1
 
             # Log game outcome
-            ppo_final_stack = config.INITIAL_STACK # Default if not found
+            ppo_final_stack = config.INITIAL_STACK # Default to initial stack if not found
             for p in game_result.get('players', []):
                  # Use name matching as UUID might change if engine re-registers across games
                  if p.get('name') == ppo_player.player_name:
@@ -105,14 +102,13 @@ def main():
 
 
         except Exception as e:
-             print(f"\n--- Error during Game {game_num} ---")
-             print(e)
-             import traceback
-             traceback.print_exc()
-             print("Skipping game result and potential update.")
-             # Clear any potentially corrupted trajectory data from memory
-             ppo_algo.memory._clear_trajectory_buffer()
-             return # Move to the next game
+            print(f"\n--- Error during Game {game_num} ---")
+            print(e)
+            
+            import traceback
+            traceback.print_exc()
+            print("STOPPING game result and potential update.")
+            return # STOP game
 
     # --- Final Save ---
     ppo_algo.save_model(config.MODEL_SAVE_PATH, 'final')

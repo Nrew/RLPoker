@@ -1,4 +1,3 @@
-# ppo_core.py
 import os
 
 import numpy as np
@@ -12,7 +11,7 @@ try:
     from .networks import Actor, Critic
     from .memory import MemoryBuffer
 except ImportError:
-    # Fallback for running script directly
+    # Fallback import
     import config
     from networks import Actor, Critic
     from memory import MemoryBuffer
@@ -43,8 +42,8 @@ class PPO:
         if state_np is None or not isinstance(state_np, np.ndarray):
             # Handle cases where state might be invalid
             print("Warning: Received invalid state in select_action. Returning default action.")
+            
             # Return dummy values (e.g., fold action, zero log_prob/value)
-            # The caller should ideally prevent invalid states.
             action_idx = 0 # Fold
             log_prob = torch.tensor(0.0, device=self.device)
             value = torch.tensor(0.0, device=self.device).unsqueeze(0)

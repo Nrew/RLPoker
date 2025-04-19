@@ -1,5 +1,4 @@
 from pypokerengine.players import BasePokerPlayer
-from src.bots.process_state_for_nn import process_poker_state_for_nn
 
 class CowardBot(BasePokerPlayer):  # Do not forget to make parent class as "BasePokerPlayer"
 

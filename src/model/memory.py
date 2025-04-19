@@ -1,4 +1,3 @@
-# memory.py
 import numpy as np
 import torch
 
@@ -81,9 +80,15 @@ class MemoryBuffer:
         # Buffer overflow check
         if self._current_size > self.buffer_size:
             num_to_remove = self._current_size - self.buffer_size
-            num_to_remove = max(self.batch_size, num_to_remove) # Remove at least one batch worth
-            num_to_remove = min(num_to_remove, self._current_size) # Don't remove more than exist
+            
+            # Remove at least one batch worth
+            num_to_remove = max(self.batch_size, num_to_remove)
+            
+            # Don't remove more than exist
+            num_to_remove = min(num_to_remove, self._current_size) 
             print(f"Memory buffer overflow. Removing {num_to_remove} oldest samples.")
+            
+            # Remove oldest samples from each list
             del self.states[:num_to_remove]
             del self.actions[:num_to_remove]
             del self.log_probs[:num_to_remove]
@@ -185,14 +190,14 @@ class MemoryBuffer:
         # NOTE: Need next state value estimate for delta calculation
         # Append a 0 value for the terminal state if the last state wasn't terminal,
         # or use the value estimate of the last state if it *was* terminal (should be 0).
-        # TEMP Approach: Use V(s_t+1) where available, 0 if done[t] == 1.
+        # TODO: (FIX) TEMP Approach: Use V(s_t+1) where available, 0 if done[t] == 1.
         for t in reversed(range(n_steps)):
             if t == n_steps - 1:
                 next_non_terminal = 1.0 - dones[t] # 1 if not done, 0 if done
-                next_value = 0 # No V(s_{t+1}) available
+                next_value = 0                     # No V(s_{t+1}) available
             else:
                 next_non_terminal = 1.0 - dones[t] # Is the *current* step terminal?
-                next_value = values[t + 1] # V(s_{t+1})
+                next_value = values[t + 1]         # V(s_{t+1})
 
             delta = rewards[t] + config.GAMMA * next_value * next_non_terminal - values[t]
             last_gae_lam = delta + config.GAMMA * config.GAE_LAMBDA * next_non_terminal * last_gae_lam
@@ -218,7 +223,7 @@ class MemoryBuffer:
         del self.values[:]
         del self.dones[:]
         self._current_size = 0
-        self._clear_trajectory_buffer() # Also clear any incomplete trajectory
+        self._clear_trajectory_buffer() # Clear any incomplete trajectory
 
     def __len__(self):
         return self._current_size

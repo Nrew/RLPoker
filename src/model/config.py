@@ -1,4 +1,3 @@
-# config.py
 import torch
 
 # --- PPO Hyperparameters ---
@@ -41,4 +40,6 @@ HIDDEN_UNITS = 512              # Number of units in hidden layers
 
 # --- Constants ---
 MAX_PLAYERS = NUM_OPPONENTS + 1 # Total players in the game (including the agent)
+GAMES_PER_WORKER = 5            # Number of games each worker plays before reporting back
 EPSILON = 1e-6                  # Small value to prevent division by zero in calculations
+NB_ESTIMATIONS = 1000           # Number of simulations for win rate estimation

@@ -151,9 +151,9 @@ def main():
         'PLAYER_NAME_PREFIX': config.PLAYER_NAME_PREFIX,
         'NUM_OPPONENTS': config.NUM_OPPONENTS,
         'OPPONENT_TYPE': config.OPPONENT_TYPE,
-        'BATCH_SIZE': config.BATCH_SIZE,      # Add these for memory buffer in workers
+        'BATCH_SIZE': config.BATCH_SIZE,            # Add these for memory buffer in workers
         'BUFFER_SIZE': config.BUFFER_SIZE,
-        'games_per_worker': 5  # Each worker plays this many games before reporting back
+        'games_per_worker': config.GAMES_PER_WORKER 
     }
 
     num_cores = mp.cpu_count()
