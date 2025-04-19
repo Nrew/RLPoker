@@ -127,14 +127,11 @@ class Agent(BasePokerPlayer):
         if my_info:
             final_stack = my_info['stack']
         else:
-            # Agent not found in final seats, likely busted or error. Assume 0 stack.
             # print(f"Info: Agent {self.uuid} not found in round_result seats. Assuming final stack is 0.")
             final_stack = 0
 
-        # Retrieve the stack stored at the beginning of this round
         start_stack = self.stack_at_round_start
 
-        # Calculate the raw reward (change in stack size for this hand)
         raw_reward = final_stack - start_stack
 
         # --- Reward Normalization (Optional but Recommended) ---
@@ -153,7 +150,6 @@ class Agent(BasePokerPlayer):
              print(f"Warning: PPO Algorithm or finish_hand method not found during round_result for {self.uuid}")
 
 
-        # Log the result
         # print(f"Round result for {self.uuid}. Start: {start_stack}, Final: {final_stack}, Reward: {raw_reward} (Norm: {reward_to_use:.2f})")
         # print(f"Memory buffer size after hand: {len(self.algorithm.memory)}")
 

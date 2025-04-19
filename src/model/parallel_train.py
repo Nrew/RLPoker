@@ -6,7 +6,6 @@ import time
 from pypokerengine.api.game import setup_config, start_poker
 import random
 
-# Import your modules
 from model import PPO
 from wrapper import Agent
 from bots.randomBot import RandomBot

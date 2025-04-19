@@ -209,7 +209,7 @@ class PPO:
             print(f"Error loading models: {e}. Starting from scratch.")
 
     def load_latest(self, path_prefix):
-        """Loads actor and critic models."""
+        """Loads the latest actor and critic models."""
         try:
             self.actor.load_state_dict(torch.load(f"{path_prefix}_actor_latest.pth", map_location=self.device))
             self.critic.load_state_dict(torch.load(f"{path_prefix}_critic_latest.pth", map_location=self.device))

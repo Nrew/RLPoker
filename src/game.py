@@ -7,29 +7,49 @@ from bots.cowardBot import CowardBot
 import multiprocessing as mp
 from multiprocessing import Manager
 import time
+from model.model import PPO
+from model.wrapper import Agent
+from model.config import MODEL_SAVE_PATH
 
+def create_ppo_agent():
 
+    ppo_algo = PPO()
+    try:
+        ppo_algo.load_latest(f"{MODEL_SAVE_PATH}")
+        print(f"Successfully loaded PPO model from {MODEL_SAVE_PATH}")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        print("Will use untrained model")
+
+    ppo_agent = Agent(ppo_algo, player_name="ProfitMakerBot")
+
+    return ppo_agent
 
 def run_game(arg):
     i, counters = arg
     # Configure the game
-    config = setup_config(max_round=100, initial_stack=100, small_blind_amount=5)
-    config.register_player(name=f"AllInBot {i}", algorithm=AllInBot())
+    ppo_agent = create_ppo_agent()
+    config = setup_config(max_round=100, initial_stack=1000, small_blind_amount=50)
+
     config.register_player(name=f"RandomBot {i}", algorithm=RandomBot())
     config.register_player(name=f"AllInBot {i+1}", algorithm=AllInBot())
-    config.register_player(name=f"AllInBot {i+2}", algorithm=AllInBot())
-    config.register_player(name=f"AllInBot {i+3}", algorithm=AllInBot())
-    config.register_player(name=f"CowardBot {i}", algorithm=CowardBot())
-    # config.register_player(name="Console Player", algorithm=ConsolePlayer())
+
+    config.register_player(name=f"RandomBot {i+2}", algorithm=RandomBot())
+
+    config.register_player(name=f"RandomBot {i+3}", algorithm=RandomBot())
+    config.register_player(name=f"RandomBot {i}", algorithm=RandomBot())
+    config.register_player(name=f"ProfitMakerBot", algorithm=ppo_agent)
+
+
+# config.register_player(name="Console Player", algorithm=ConsolePlayer())
     result = start_poker(config, verbose=0)
 
     for player in result['players']:
         if player['stack'] > 0:  # This player won
             bot_type = player['name'].split()[0]
             counters[bot_type] += 1
-            break  # Only one winner per game
+            break
 
-    # Periodically report progress
     if i % 1000 == 0:
         print(f"Completed {i} games")
 
@@ -37,7 +57,9 @@ def run_game(arg):
 
 
 if __name__ == '__main__':
-    num_games = 100_00
+    mp.set_start_method('spawn', force=True)
+
+    num_games = 10_000
     start_time = time.time()
     print(f"Initial start time: {start_time}")
     num_cores = mp.cpu_count()
@@ -47,7 +69,8 @@ if __name__ == '__main__':
         counters = manager.dict({
             'AllInBot': 0,
             'RandomBot': 0,
-            'CowardBot': 0
+            'CowardBot': 0,
+            'ProfitMakerBot': 0
         })
 
         args = [(i, counters) for i in range(num_games)]
@@ -56,7 +79,6 @@ if __name__ == '__main__':
             pool.map(run_game, args)
         final_counts = dict(counters)
 
-    # Measure elapsed time
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Elapsed time: {elapsed_time:.4f} seconds")
